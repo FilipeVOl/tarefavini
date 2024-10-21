@@ -2,59 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Passport\TokenRepository;
 
-/**
- * Class AuthController
- *
- * @package App\Http\Controllers
- * @author Vinícius Siqueira
- * @link https://github.com/ViniciusSCS
- * @date 2024-10-01 15:52:14
- * @copyright UniEVANGÉLICA
- */
 class AuthController extends Controller
 {
-    protected $tokenRepository;
+    protected $authService;
 
-    public function __construct(TokenRepository $tokenRepository)
+    public function __construct(AuthService $authService)
     {
-        $this->tokenRepository = $tokenRepository;
+        $this->authService = $authService;
     }
 
     public function login(Request $request)
     {
-        //Receber a credencial (email e senha)
-        $data = $request->all();
-
-        //Verificar se credenciais estão no Banco
-        if (Auth::attempt(['email' => strtolower($data['email']), 'password' => $data['password']])) {
-            //Autentica o usuário
-            $user = auth()->user();
-
-            //cria um token
-            $user->token = $user->createToken($user->email)->accessToken;
-            return [
-                'status' => 200,
-                'message' => "Usuário logado com sucesso",
-                "usuario" => $user
-            ];
-        } else {
-            return [
-                'status' => 404,
-                'message' => "Usuário ou senha incorreto"
-            ];
-        }
+        return $this->authService->login($request);
     }
 
     public function logout(Request $request)
     {
-        $tokenId = $request->user()->token()->id;
+        return $this->authService->logout($request);
+    }
 
-        $this->tokenRepository->revokeAccessToken($tokenId);
-
-        return ['status' => true, 'message' => "Usuário deslogado com sucesso!"];
+    public function update(Request $request, $id)
+    {
+        return $this->authService->update($request, $id);
     }
 }
